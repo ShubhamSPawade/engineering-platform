@@ -1,6 +1,10 @@
 # Card cancellation and dependency policy
 
-The existing required `superthread-ticket` status now has a prepared lifecycle validator in addition to scope and content validation. Demo adoption follows a read-only audit of the real API shape; evidence is recorded below when completed.
+The required `superthread-ticket` status adds lifecycle validation to scope and content validation. Platform policy is pinned to `9fb7234371a9107708b16e2a74645f8b5204abac` for demo adoption.
+
+The [read-only audit](https://github.com/ShubhamSPawade/engineering-platform/actions/runs/38073212644) passed all ticket-policy tests and verified ST-1754: status `committed`, explicit valid linked-card metadata, zero blockers, and populated required card sections. Local verification passed 30 platform tests in total. Cancelled/unresolved/moved/inaccessible cases were tested with simulated API responses; the user's live card was not modified to create failures.
+
+[Demo PR #17](https://github.com/ShubhamSPawade/engineering-demo-api/pull/17) adopted the policy and concise template after all checks passed. Because trusted PR workflows load from the base branch, [follow-up PR #18](https://github.com/ShubhamSPawade/engineering-demo-api/pull/18) separately verified actual execution of the adopted policy. Its [ticket run](https://github.com/ShubhamSPawade/engineering-demo-api/actions/runs/38073613567) succeeded on latest head `fcfb457fdfe20cea80c41065b622b5ea0f8e334c` and published `ST-1754 scope, content, cancellation and dependencies verified`. All CI/security/advisory jobs also passed; PR #18 merged at `5063db2625f4146a43ea4ae2879dbf5f7aefcf4c`.
 
 The card must expose a known status and cannot be `cancelled`. Other native statuses (`backlog`, `committed`, `started`, `completed`) are accepted; a completed card may need a follow-up correction, so completion alone is not a rejection. Status names are not inferred from human prose. See [Superthread status types](https://superthread.com/docs/help/statuses) and the [API status behavior enum](https://superthread.com/docs/api-docs/boards/create-a-list).
 
