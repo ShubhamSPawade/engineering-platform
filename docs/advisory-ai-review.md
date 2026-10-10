@@ -2,7 +2,7 @@
 
 Use the existing open-source [PR-Agent](https://github.com/The-PR-Agent/pr-agent), pinned to v0.47.0 commit `8e5a9295973b24af4b70cafd0b660a230811ef9e`, with its upstream frozen dependency lock. The user selected Gemini on 2026-10-10 after disclosure that free-tier public PR data may be used to improve Google's products.
 
-The proposed model is `gemini/gemini-3.8-flash`, listed by both [PR-Agent's Gemini configuration guide](https://docs.pr-agent.ai/usage-guide/changing_a_model/#google-ai-studio) and [Google's pricing page](https://ai.google.dev/gemini-api/docs/pricing). Access and free quota must be proven with the installation's key; a published model listing is not proof of access. GitHub Models is unavailable following its [July 2026 retirement](https://github.blog/changelog/2026-07-01-github-models-is-being-fully-retired-on-july-30-2026/).
+The configured model is `gemini/gemini-3.1-flash-lite`, listed on [Google's pricing page](https://ai.google.dev/gemini-api/docs/pricing) with free-tier input and output. The user requested an alternate model after `gemini/gemini-3.8-flash` timed out. Access and free quota must be proven with the installation's key; a published model listing is not proof of access. PR-Agent's [Gemini configuration guide](https://docs.pr-agent.ai/usage-guide/changing_a_model/#google-ai-studio) describes provider configuration. GitHub Models is unavailable following its [July 2026 retirement](https://github.blog/changelog/2026-07-01-github-models-is-being-fully-retired-on-july-30-2026/).
 
 ## Setup
 

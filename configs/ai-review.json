@@ -1,7 +1,7 @@
 {
   "repository": "ShubhamSPawade/engineering-demo-api",
   "provider": "gemini",
-  "model": "gemini/gemini-3.8-flash",
+  "model": "gemini/gemini-3.1-flash-lite",
   "advisory_only": true,
   "max_files": 40,
   "max_diff_bytes": 50000,
