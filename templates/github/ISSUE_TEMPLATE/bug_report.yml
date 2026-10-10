@@ -1,0 +1,48 @@
+name: Bug report
+description: Report incorrect behavior with enough information to reproduce it.
+title: "bug: "
+body:
+  - type: markdown
+    attributes:
+      value: "Do not include secrets or private customer data. Issues are intake; implementation must link an approved Superthread card."
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected and actual behavior
+      description: Describe what should happen and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: Provide steps, a minimal example, and sanitized logs where useful.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Version and environment
+      description: Include the commit or release, runtime, operating system and affected environment.
+    validations:
+      required: true
+  - type: dropdown
+    id: impact
+    attributes:
+      label: Impact
+      options:
+        - Limited impact; workaround available
+        - Feature unusable; no workaround
+        - Service unavailable or data integrity affected
+    validations:
+      required: true
+  - type: textarea
+    id: regression
+    attributes:
+      label: Regression and supporting evidence
+      description: Last known working version, frequency, relevant tests, screenshots or sanitized logs.
+  - type: input
+    id: ticket
+    attributes:
+      label: Superthread card URL
+      description: Optional for intake. A maintainer creates or links the card during triage before implementation.

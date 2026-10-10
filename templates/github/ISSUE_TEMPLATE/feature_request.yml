@@ -1,0 +1,38 @@
+name: Feature request
+description: Propose a change with an observable outcome and a way to verify it.
+title: "feat: "
+body:
+  - type: markdown
+    attributes:
+      value: "Issues collect proposals. Approved work moves to a scoped Superthread card before implementation."
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem and users affected
+      description: Explain the current limitation and who needs the change.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Proposed behavior and acceptance criteria
+      description: Give measurable outcomes and describe the intended scope.
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: Verification approach
+      description: Explain how the proposed behavior can be tested.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives and compatibility
+      description: Describe alternatives, affected consumers, dependencies and possible breaking changes.
+  - type: input
+    id: ticket
+    attributes:
+      label: Superthread card URL
+      description: Optional for intake. A maintainer creates or links the card during triage before implementation.
