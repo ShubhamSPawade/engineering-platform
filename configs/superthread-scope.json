@@ -1,0 +1,30 @@
+{
+  "github_repository": "ShubhamSPawade/engineering-demo-api",
+  "workspace_route": "cardtree",
+  "space_name": "test-demo",
+  "space_route": "space-9",
+  "space_url": "https://app.superthread.com/cardtree/space-9/boards",
+  "api_space_id": null,
+  "board_name": "Engineering Demo",
+  "board_route": "board-17-engineering-demo",
+  "board_url": "https://app.superthread.com/cardtree/board-17-engineering-demo",
+  "board_route_id": "17",
+  "board_id": null,
+  "pilot_card_id": null,
+  "pilot_card_route_id": "1754",
+  "pilot_card_reference": "ST-1754",
+  "pilot_card_url": "https://app.superthread.com/cardtree/card-1754-test-github-pr-integration",
+  "pilot_pr_url": "https://github.com/ShubhamSPawade/engineering-demo-api/pull/3",
+  "native_pr_link_verified_by_user": true,
+  "native_pr_link_verification_date": "2026-10-10",
+  "native_merged_status_verified_by_user": true,
+  "native_merged_status_verification_date": "2026-10-10",
+  "scope_verified_via_api": false,
+  "policy": {
+    "allow_other_spaces": false,
+    "allow_workspace_configuration_changes": false,
+    "require_verified_space_membership_before_mutation": true,
+    "require_explicit_board_registration": true,
+    "complete_on_pr_merge": false
+  }
+}

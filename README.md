@@ -4,7 +4,7 @@ Reusable GitHub automation for PR checks, advisory AI review, Superthread tracea
 
 ## Current status
 
-Shared Node.js CI is published and adopted by the demo through merged PR #1; its shared job and required merge gate passed on GitHub. The shared security baseline is prepared locally, pending publication and scanner execution. Superthread/AI integrations, hosted deployments, and release automation remain to be implemented.
+Shared Node.js CI and security checks are published and adopted through merged demo PRs #1 and #2, with successful GitHub runs. The user confirmed that pilot PR #3 appeared on Superthread card ST-1754 in Engineering Demo, within test-demo; PR #3 has merged into dev. Authenticated ticket validation, status automation, AI review, hosted deployments, and release automation remain to be implemented.
 
 The initial pilot targets the public repository `ShubhamSPawade/engineering-platform` on GitHub Free. The account owner reports that the repository has been created and the initial planning documents uploaded. The platform will support separate installations under other GitHub accounts and organizations through configurable repository ownership, integration settings, and deployment adapters.
 
@@ -20,7 +20,7 @@ Inventory pilot repositories, validate GitHub capabilities, confirm Superthread 
 
 ## Pilot application
 
-The local `demo-api/` folder contains the Node.js pilot application, tests, packaging scripts, Dockerfile, and standalone CI. It is ignored by this platform repository so it can be published as its own `engineering-demo-api` repository. Its README documents local verification and publication commands.
+The local `demo-api/` folder contains the Node.js pilot application, tests, packaging scripts, Dockerfile, and callers for the shared CI/security workflows. It is ignored by this platform repository and published separately as `engineering-demo-api`.
 
 ## Shared CI
 
@@ -28,4 +28,6 @@ See [shared Node CI adoption](docs/shared-node-ci.md) for the configurable workf
 
 ## Shared security
 
-The [shared security baseline](docs/shared-security.md) adds Gitleaks, npm dependency validation/OSV, and focused Semgrep rules. The security publisher opens a separate adoption PR and strengthens the existing demo-verify gate. Local files are prepared; GitHub scanner execution and adoption remain pending.
+See [Superthread pilot setup](docs/superthread-pilot.md) for the confirmed native PR link and the manual, read-only API scope verifier.
+
+The [shared security baseline](docs/shared-security.md) adds Gitleaks, npm dependency validation/OSV, and focused Semgrep rules. The demo has adopted it through PR #2, and all security jobs and the required demo-verify gate passed on GitHub. With no third-party npm dependencies, OSV validates the empty inventory and skips vulnerability scanning.
