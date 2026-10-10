@@ -1,0 +1,45 @@
+# Render PLATFORM_REPOSITORY and PLATFORM_SHA before installing this caller.
+name: Demo CI
+
+on:
+  pull_request:
+    branches: [dev, staging, main]
+  push:
+    branches: [dev, staging, main]
+  merge_group:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: demo-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  shared-ci:
+    uses: __PLATFORM_REPOSITORY__/.github/workflows/reusable-node-ci.yml@__PLATFORM_SHA__
+    with:
+      node-version-file: .nvmrc
+      install-command: ''
+      check-command: npm run check
+      test-command: npm test
+      build-command: npm run build
+      smoke-command: node scripts/smoke.mjs dist/src/server.mjs
+      container-build: true
+  verify:
+    name: demo-verify
+    needs: shared-ci
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    env:
+      SHARED_RESULT: ${{ needs.shared-ci.result }}
+    steps:
+      - name: Require successful shared CI
+        shell: bash
+        run: |
+          if [ "$SHARED_RESULT" != "success" ]; then
+            echo "Shared CI is incomplete or unsuccessful: $SHARED_RESULT"
+            exit 1
+          fi

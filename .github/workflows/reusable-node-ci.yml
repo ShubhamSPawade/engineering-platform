@@ -1,0 +1,103 @@
+name: Reusable Node CI
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: Node.js version when no version file is supplied
+        type: string
+        default: '24'
+      node-version-file:
+        description: Version file relative to the application working directory
+        type: string
+        default: ''
+      working-directory:
+        description: Application directory relative to the checked-out repository
+        type: string
+        default: '.'
+      install-command:
+        description: Dependency installation command; empty for dependency-free applications
+        type: string
+        default: npm ci
+      check-command:
+        description: Repository quality-check command
+        type: string
+        default: npm run check
+      test-command:
+        description: Repository test command
+        type: string
+        default: npm test
+      build-command:
+        description: Repository packaging command
+        type: string
+        default: npm run build
+      smoke-command:
+        description: Optional smoke check of the packaged application
+        type: string
+        default: ''
+      container-build:
+        description: Build the application Dockerfile without publishing an image
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  node-ci:
+    name: node-ci
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ inputs.working-directory }}
+    steps:
+      - name: Check out application repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Node.js from explicit version
+        if: inputs.node-version-file == ''
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ inputs.node-version }}
+          package-manager-cache: false
+      - name: Set up Node.js from application version file
+        if: inputs.node-version-file != ''
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: ${{ format('{0}/{1}', inputs.working-directory, inputs.node-version-file) }}
+          package-manager-cache: false
+      - name: Install dependencies
+        if: inputs.install-command != ''
+        env:
+          CI_COMMAND: ${{ inputs.install-command }}
+        run: bash --noprofile --norc -e -o pipefail -c "$CI_COMMAND"
+      - name: Quality checks
+        env:
+          CI_COMMAND: ${{ inputs.check-command }}
+        run: |
+          test -n "$CI_COMMAND"
+          bash --noprofile --norc -e -o pipefail -c "$CI_COMMAND"
+      - name: Tests
+        env:
+          CI_COMMAND: ${{ inputs.test-command }}
+        run: |
+          test -n "$CI_COMMAND"
+          bash --noprofile --norc -e -o pipefail -c "$CI_COMMAND"
+      - name: Build runtime
+        env:
+          CI_COMMAND: ${{ inputs.build-command }}
+          APP_COMMIT: ${{ github.sha }}
+        run: |
+          test -n "$CI_COMMAND"
+          bash --noprofile --norc -e -o pipefail -c "$CI_COMMAND"
+      - name: Smoke check packaged runtime
+        if: inputs.smoke-command != ''
+        env:
+          CI_COMMAND: ${{ inputs.smoke-command }}
+        run: bash --noprofile --norc -e -o pipefail -c "$CI_COMMAND"
+      - name: Build container
+        if: inputs.container-build
+        run: docker build --build-arg VCS_REF="$GITHUB_SHA" --tag ci-candidate:local .

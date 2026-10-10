@@ -4,9 +4,9 @@ Reusable GitHub automation for PR checks, advisory AI review, Superthread tracea
 
 ## Current status
 
-Planning stage. GitHub workflows, integrations, deployments, and release automation have not been implemented.
+The first reusable Node.js CI workflow and its demo adoption automation are prepared locally. GitHub publication and PR execution are the next validation steps. Security scans, Superthread/AI integrations, deployments, and release automation have not yet been implemented.
 
-The initial pilot targets the public repository `ShubhamSPawade/engineering-platform` on GitHub Free. The account owner reports that the repository has been created; the initial files are pending upload. The platform will support separate installations under other GitHub accounts and organizations through configurable repository ownership, integration settings, and deployment adapters.
+The initial pilot targets the public repository `ShubhamSPawade/engineering-platform` on GitHub Free. The account owner reports that the repository has been created and the initial planning documents uploaded. The platform will support separate installations under other GitHub accounts and organizations through configurable repository ownership, integration settings, and deployment adapters.
 
 ## Implementation plan
 
@@ -17,3 +17,11 @@ The initial tools are GitHub Actions, Superthread, PR-Agent, Semgrep, Gitleaks, 
 ## First milestone
 
 Inventory pilot repositories, validate GitHub capabilities, confirm Superthread configuration, and demonstrate the frozen candidate/version/tag lifecycle before implementing production release automation.
+
+## Pilot application
+
+The local `demo-api/` folder contains the Node.js pilot application, tests, packaging scripts, Dockerfile, and standalone CI. It is ignored by this platform repository so it can be published as its own `engineering-demo-api` repository. Its README documents local verification and publication commands.
+
+## Shared CI
+
+See [shared Node CI adoption](docs/shared-node-ci.md) for the configurable workflow, the stable required-check gate, and the single publishing command. The publisher pins the demo caller to the actual platform commit and opens a PR into dev without changing protected branches directly.
