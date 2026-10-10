@@ -1,6 +1,6 @@
 # Implementation Plan: Engineering Automation Platform
 
-Status: Pilot in progress. Shared Node CI/security, branch merge gates, native Superthread PR linking, and basic authenticated ticket scope validation are implemented. Releases, deployments, AI review, and durable synchronization remain pending.
+Status: Pilot in progress. Shared Node CI/security, branch merge gates, native Superthread PR linking, and basic authenticated ticket scope validation are implemented. Advisory PR-Agent/Gemini workflows are installed; live model success and quality evaluation remain pending. Releases, deployments, and durable synchronization remain pending.
 
 Source: `Raw Complete plan - Automated PR review, Superthread integration, multi-repo releases, and deployment.md`, read in full, including its failure cases and final checklist.
 

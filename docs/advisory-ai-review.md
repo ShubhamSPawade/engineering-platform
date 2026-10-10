@@ -30,6 +30,10 @@ AI is absent from all required merge gates. Required demo-verify and superthread
 
 ## Acceptance and evaluation
 
+Live evidence on 2026-10-10: demo PRs [#6](https://github.com/ShubhamSPawade/engineering-demo-api/pull/6), [#7](https://github.com/ShubhamSPawade/engineering-demo-api/pull/7), and [#8](https://github.com/ShubhamSPawade/engineering-demo-api/pull/8) adopted the workflows and diagnostic fixes. PR [#9](https://github.com/ShubhamSPawade/engineering-demo-api/pull/9) passed required CI/security and ticket validation. Its [advisory run](https://github.com/ShubhamSPawade/engineering-demo-api/actions/runs/38067687249) verified Google model metadata access, but PR-Agent inference timed out after 180 seconds. The opt-in direct `Reply OK` request also failed to complete within 30 seconds. The publisher successfully posted an [unavailable comment](https://github.com/ShubhamSPawade/engineering-demo-api/pull/9#issuecomment-6099715454). The diagnostic variable was restored to false.
+
+Integration and degraded feedback are demonstrated; successful inference and finding quality are **not yet demonstrated**. These observations do not establish whether the cause is project access, provider capacity, or connectivity from the runner. Test the same project/model in AI Studio before retrying the workflow. No billing was enabled by this automation.
+
 Before claiming live readiness, demonstrate a completed model call, a posted advisory comment, unavailable-provider behavior and successful CI/ticket checks. Record known-defect detection and false positives over representative PRs before considering enforcement; the plan's suggested sample is at least 20 PRs. The initial pilot is an integration demonstration, not an evaluated quality guarantee.
 
 For a controlled unavailable-path test, set the demo repository Actions variable `PR_AGENT_SIMULATE_UNAVAILABLE=true` and rerun its advisory workflow. This stops before inference and posts unavailable feedback without changing secrets. Restore the variable to false and rerun to recover. This tests degraded workflow behavior, not a real provider outage.

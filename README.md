@@ -4,7 +4,7 @@ Reusable GitHub automation for PR checks, advisory AI review, Superthread tracea
 
 ## Current status
 
-Shared Node.js CI and security checks are adopted through merged demo PRs #1 and #2. Superthread PR linking and merged-status display are confirmed, and live API verification confirmed card ST-1754 in Engineering Demo within test-demo. PR #4 installed trusted ticket validation; the existing ruleset now requires both demo-verify and superthread-ticket on dev, staging and main. Live missing-ticket and wrong-workspace tests on PR #5 failed and blocked merging. Card completion automation, AI review, hosted deployments, and release automation remain to be implemented.
+Shared Node.js CI and security checks are adopted through merged demo PRs #1 and #2. Superthread PR linking and merged-status display are confirmed, and live API verification confirmed card ST-1754 in Engineering Demo within test-demo. PR #4 installed trusted ticket validation; the existing ruleset now requires both demo-verify and superthread-ticket on dev, staging and main. Live missing-ticket and wrong-workspace tests on PR #5 failed and blocked merging. PRs #6 and #7 installed advisory PR-Agent review with Gemini; live model success and quality evaluation remain pending. Card completion automation, hosted deployments, release automation, and durable synchronization remain to be implemented.
 
 The initial pilot targets the public repository `ShubhamSPawade/engineering-platform` on GitHub Free. The account owner reports that the repository has been created and the initial planning documents uploaded. The platform will support separate installations under other GitHub accounts and organizations through configurable repository ownership, integration settings, and deployment adapters.
 
@@ -12,7 +12,7 @@ The initial pilot targets the public repository `ShubhamSPawade/engineering-plat
 
 Read [the implementation plan](Implementation%20Plan%20-%20Engineering%20Automation%20Platform.md) for architecture, work packages, dependencies, release policies, recovery requirements, and acceptance criteria.
 
-The initial tools are GitHub Actions, Superthread, PR-Agent, Semgrep, Gitleaks, OSV-Scanner, Release Please, and applicable language/container checks. Java is outside the current scope. Artifact storage, deployment hosting, and the AI provider remain to be confirmed.
+The initial tools are GitHub Actions, Superthread, PR-Agent with Gemini, Semgrep, Gitleaks, OSV-Scanner, Release Please, and applicable language/container checks. Java is outside the current scope. Artifact storage and deployment hosting remain to be confirmed.
 
 ## First milestone
 
@@ -31,3 +31,7 @@ See [shared Node CI adoption](docs/shared-node-ci.md) for the configurable workf
 See [Superthread pilot setup](docs/superthread-pilot.md) for the confirmed native PR link and the manual, read-only API scope verifier.
 
 The [shared security baseline](docs/shared-security.md) adds Gitleaks, npm dependency validation/OSV, and focused Semgrep rules. The demo has adopted it through PR #2, and all security jobs and the required demo-verify gate passed on GitHub. With no third-party npm dependencies, OSV validates the empty inventory and skips vulnerability scanning.
+
+## Advisory review
+
+See [PR-Agent and Gemini setup](docs/advisory-ai-review.md) for the pinned open-source reviewer, separated job credentials, input limits, safe diagnostics, and unavailable-provider recovery. AI findings are advisory and do not change the required merge gates.
