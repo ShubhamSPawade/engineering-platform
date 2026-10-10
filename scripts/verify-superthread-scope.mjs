@@ -11,13 +11,13 @@ function identifier(value, label) {
 }
 
 // Only GET requests to three explicitly registered resources are supported.
-export async function verifyScope({ scope, teamId, token, fetchImpl = fetch }) {
+export async function verifyScope({ scope, teamId, token, cardId = scope.pilot_card_route_id, fetchImpl = fetch }) {
   identifier(teamId, 'SUPERTHREAD_TEAM_ID');
   requireValue(typeof token === 'string' && token.trim().length > 0 && !/[\r\n]/.test(token), 'SUPERTHREAD_API_TOKEN is missing or invalid.');
   requireValue(scope.policy?.allow_other_spaces === false && scope.policy?.allow_workspace_configuration_changes === false, 'Scope must forbid other spaces and workspace configuration changes.');
   const spaceId = identifier(scope.space_route?.match(/^space-([A-Za-z0-9_]+)$/)?.[1], 'Registered space ID');
   const boardId = identifier(scope.board_route_id, 'Registered board ID');
-  const cardId = identifier(scope.pilot_card_route_id, 'Registered card ID');
+  identifier(cardId, 'Ticket card ID');
 
   async function get(resource, id, key) {
     let response;

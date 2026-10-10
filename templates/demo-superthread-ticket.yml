@@ -1,0 +1,24 @@
+name: Superthread Ticket Policy
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, edited, ready_for_review]
+    branches: [dev, staging, main]
+
+permissions:
+  contents: read
+  pull-requests: read
+  statuses: write
+
+concurrency:
+  group: superthread-ticket-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  ticket:
+    uses: PLATFORM_REPOSITORY/.github/workflows/reusable-superthread-ticket.yml@PLATFORM_SHA
+    with:
+      policy-repository: PLATFORM_REPOSITORY
+      policy-ref: PLATFORM_SHA
+    secrets:
+      SUPERTHREAD_API_TOKEN: ${{ secrets.SUPERTHREAD_API_TOKEN }}

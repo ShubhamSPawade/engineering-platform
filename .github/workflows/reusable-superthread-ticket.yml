@@ -1,0 +1,45 @@
+name: Reusable Superthread Ticket Check
+
+on:
+  workflow_call:
+    inputs:
+      policy-repository:
+        required: true
+        type: string
+      policy-ref:
+        required: true
+        type: string
+    secrets:
+      SUPERTHREAD_API_TOKEN:
+        required: true
+
+permissions:
+  contents: read
+  pull-requests: read
+  statuses: write
+
+jobs:
+  ticket-policy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require trusted trigger and immutable policy
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          POLICY_REF: ${{ inputs.policy-ref }}
+        run: |
+          test "$EVENT_NAME" = pull_request_target
+          [[ "$POLICY_REF" =~ ^[0-9a-f]{40}$ ]]
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ inputs.policy-repository }}
+          ref: ${{ inputs.policy-ref }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+      - name: Validate current PR metadata and live card membership
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SUPERTHREAD_API_TOKEN: ${{ secrets.SUPERTHREAD_API_TOKEN }}
+        run: node scripts/check-superthread-ticket.mjs
