@@ -21,14 +21,20 @@ permissions:
 jobs:
   ticket-policy:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 50
+    concurrency:
+      group: superthread-ticket-policy-${{ github.repository }}
+      cancel-in-progress: false
     steps:
       - name: Require trusted trigger and immutable policy
         env:
           EVENT_NAME: ${{ github.event_name }}
           POLICY_REF: ${{ inputs.policy-ref }}
         run: |
-          test "$EVENT_NAME" = pull_request_target
+          case "$EVENT_NAME" in
+            pull_request_target|schedule|workflow_dispatch) ;;
+            *) exit 1 ;;
+          esac
           [[ "$POLICY_REF" =~ ^[0-9a-f]{40}$ ]]
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

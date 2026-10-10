@@ -1,23 +1,33 @@
 ﻿## Ticket
 Superthread card URL:
-- [ ] Title contains the matching ST-ID.
+- [ ] Matching ST-ID in title and linked card.
 - [ ] Card is in the approved space/board.
 - [ ] Acceptance criteria and test plan are filled in.
-- [ ] Card is active; blocking dependencies are resolved.
+- [ ] Card is not cancelled; blocking dependencies are resolved.
 
 ## Change
 Summary:
 Release impact: patch / minor / major / no application release
+Affected components / breaking changes:
 
-## Checks
-- [ ] Tests and required CI pass; evidence linked below.
-- [ ] Acceptance criteria and regression cases verified.
-- [ ] Security, dependencies and permissions reviewed.
-- [ ] Compatibility and affected components checked.
+## Testing
+- [ ] Tests, build and required CI pass.
+- [ ] Acceptance criteria verified; evidence linked.
+- [ ] Regression, invalid-input and failure cases covered.
+Test commands / results:
+
+## Security and compatibility
+- [ ] No secrets or sensitive data included.
+- [ ] Input validation, authorization and permissions reviewed.
+- [ ] Dependencies, licenses and scan findings reviewed.
+- [ ] API/config compatibility and affected consumers checked.
+- [ ] Retry, timeout and performance effects considered.
+
+## Delivery and review
 - [ ] Documentation and configuration updated.
-- [ ] Migration, deployment and recovery covered.
-- [ ] Labels applied; review threads resolved.
-
-Test evidence:
-Deployment/recovery:
-Follow-ups or inapplicable checks:
+- [ ] Migration and deployment order covered.
+- [ ] Deployment verification and rollback documented.
+- [ ] Type/priority/breaking-change labels applied as needed.
+- [ ] Review feedback resolved; remaining work linked.
+Deployment / recovery:
+Follow-ups / inapplicable checks:

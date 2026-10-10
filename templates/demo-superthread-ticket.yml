@@ -4,15 +4,14 @@ on:
   pull_request_target:
     types: [opened, reopened, synchronize, edited, ready_for_review]
     branches: [dev, staging, main]
+  schedule:
+    - cron: '7,22,37,52 * * * *'
+  workflow_dispatch:
 
 permissions:
   contents: read
   pull-requests: read
   statuses: write
-
-concurrency:
-  group: superthread-ticket-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
 
 jobs:
   ticket:

@@ -1,8 +1,9 @@
-import { readFile } from 'node:fs/promises';
+﻿import { readFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import { verifyScope } from './verify-superthread-scope.mjs';
 import { enforceCardContent } from './superthread-card-content.mjs';
 import { enforceCardLifecycle } from './superthread-card-lifecycle.mjs';
+import { createGithubClient, validatePrStatus, reconcilePrStatuses, requireReconciliationSource } from './superthread-ticket-runtime.mjs';
 
 export function ticketFromPr(pr, scope) {
   if (pr.base?.repo?.full_name !== scope.github_repository) throw new Error('PR repository is not registered.');
@@ -34,47 +35,26 @@ async function run() {
   const scope = JSON.parse(await readFile(new URL('../configs/superthread-scope.json', import.meta.url), 'utf8'));
   const contentPolicy = JSON.parse(await readFile(new URL('../configs/superthread-content-policy.json', import.meta.url), 'utf8'));
   const lifecyclePolicy = JSON.parse(await readFile(new URL('../configs/superthread-lifecycle-policy.json', import.meta.url), 'utf8'));
-  const event = JSON.parse(await readFile(process.env.GITHUB_EVENT_PATH, 'utf8'));
+  const eventName = process.env.GITHUB_EVENT_NAME;
   const repository = process.env.GITHUB_REPOSITORY;
-  if (repository !== scope.github_repository || process.env.GITHUB_EVENT_NAME !== 'pull_request_target') {
-    throw new Error('Ticket checks require a registered repository and trusted pull_request_target event.');
+  if (repository !== scope.github_repository || !['pull_request_target', 'schedule', 'workflow_dispatch'].includes(eventName)) {
+    throw new Error('Ticket checks require a registered repository and trusted event.');
   }
-  const number = event.pull_request?.number;
-  const sha = event.pull_request?.head?.sha;
-  if (!Number.isSafeInteger(number) || !/^[0-9a-f]{40}$/.test(sha ?? '')) throw new Error('Invalid PR event identity.');
-  const githubToken = process.env.GITHUB_TOKEN;
-  if (!githubToken) throw new Error('GitHub authentication is missing.');
-  async function github(path, method = 'GET', body) {
-    let response;
-    try {
-      response = await fetch(`https://api.github.com/repos/${repository}/${path}`, {
-        method, redirect: 'error', signal: AbortSignal.timeout(30_000),
-        headers: { Authorization: `Bearer ${githubToken}`, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' },
-        ...(body ? { body: JSON.stringify(body) } : {}),
-      });
-    } catch { throw new Error('GitHub request failed.'); }
-    if (!response.ok) throw new Error(`GitHub request failed (HTTP ${response.status}).`);
-    return response.json();
-  }
+  const github = createGithubClient({ repository, token: process.env.GITHUB_TOKEN });
   const targetUrl = `https://github.com/${repository}/actions/runs/${process.env.GITHUB_RUN_ID}`;
-  const status = (state, description) => github(`statuses/${sha}`, 'POST', { state, context: 'superthread-ticket', description, target_url: targetUrl });
-  // A new event invalidates the previous result before any validation.
-  await status('pending', 'Checking registered Superthread ticket');
-  try {
-    const pr = await github(`pulls/${number}`);
-    if (pr.state !== 'open' || pr.head.sha !== sha) throw new Error('PR event is stale; a newer event must validate the current head.');
-    const receipt = await checkTicket({ pr, scope, token: process.env.SUPERTHREAD_API_TOKEN, contentPolicy, lifecyclePolicy });
-    const current = await github(`pulls/${number}`);
-    if (current.state !== 'open' || current.head.sha !== sha || current.title !== pr.title || current.body !== pr.body || current.base.ref !== pr.base.ref) {
-      throw new Error('PR changed during validation; retry the latest event.');
-    }
-    await status('success', `ST-${receipt.pilot_card_id} scope, content, cancellation and dependencies verified`);
-    console.log(`Verified ST-${receipt.pilot_card_id} in the registered Superthread scope.`);
-  } catch (error) {
-    // Controlled messages only: never print PR content, card content or API bodies.
-    await status('failure', error.message.slice(0, 140));
-    throw error;
+  const validate = pr => checkTicket({ pr, scope, token: process.env.SUPERTHREAD_API_TOKEN, contentPolicy, lifecyclePolicy });
+  let results;
+  if (eventName === 'pull_request_target') {
+    const event = JSON.parse(await readFile(process.env.GITHUB_EVENT_PATH, 'utf8'));
+    results = [await validatePrStatus({ initialPr: event.pull_request, repository, github, targetUrl, validate })];
+  } else {
+    const registration = await github('');
+    requireReconciliationSource({ registration, repository, ref: process.env.GITHUB_REF });
+    results = await reconcilePrStatuses({ repository, github, targetUrl, validate });
   }
+  const failed = results.filter(result => result.state !== 'success').length;
+  console.log(JSON.stringify({ checked: results.length, succeeded: results.length - failed, failed }));
+  if (failed) throw new Error('One or more Superthread ticket checks failed; inspect the required status.');
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
