@@ -1,0 +1,31 @@
+rules:
+  - id: no-eval
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: Avoid eval; parse structured input or use explicit application logic.
+    pattern: eval(...)
+  - id: no-dynamic-function
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: Do not construct executable functions from strings.
+    pattern-either:
+      - pattern: new Function(...)
+      - pattern: Function(...)
+  - id: no-shell-exec
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: Shell execution requires review; use execFile or spawn with an argument array and shell disabled.
+    pattern-either:
+      - pattern: exec(...)
+      - pattern: execSync(...)
+      - pattern: $MODULE.exec(...)
+      - pattern: $MODULE.execSync(...)
+  - id: no-shell-enabled-spawn
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: Avoid shell:true when spawning a command; pass explicit arguments without a shell.
+    pattern-either:
+      - pattern: 'spawn(..., { ..., shell: true, ... })'
+      - pattern: 'spawnSync(..., { ..., shell: true, ... })'
+      - pattern: '$MODULE.spawn(..., { ..., shell: true, ... })'
+      - pattern: '$MODULE.spawnSync(..., { ..., shell: true, ... })'

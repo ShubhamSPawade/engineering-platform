@@ -1,0 +1,158 @@
+name: Reusable Node Security
+
+on:
+  workflow_call:
+    inputs:
+      policy-repository:
+        description: Accessible engineering-platform repository holding the approved rules
+        required: true
+        type: string
+      policy-ref:
+        description: Immutable platform commit containing the approved rules
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  secrets:
+    name: gitleaks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install checksum-pinned Gitleaks
+        shell: bash
+        run: |
+          cd "$RUNNER_TEMP"
+          curl --fail --location --retry 3 --max-time 120 -o gitleaks.tar.gz https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
+          echo '551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  gitleaks.tar.gz' | sha256sum --check --strict
+          mkdir -p security-tools
+          tar -xzf gitleaks.tar.gz -C security-tools gitleaks
+          echo "$RUNNER_TEMP/security-tools" >> "$GITHUB_PATH"
+      - name: Scan history with enforced defaults
+        shell: bash
+        run: |
+          printf '[extend]\nuseDefault = true\n' > "$RUNNER_TEMP/gitleaks.toml"
+          touch "$RUNNER_TEMP/empty-gitleaksignore"
+          gitleaks git --log-opts="--all" --redact=100 --ignore-gitleaks-allow \
+            --config "$RUNNER_TEMP/gitleaks.toml" \
+            --gitleaks-ignore-path "$RUNNER_TEMP/empty-gitleaksignore" \
+            --report-format json --report-path "$RUNNER_TEMP/gitleaks-report.json" .
+
+  dependencies:
+    name: osv-scanner
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install checksum-pinned OSV-Scanner
+        shell: bash
+        run: |
+          cd "$RUNNER_TEMP"
+          curl --fail --location --retry 3 --max-time 120 -o osv-scanner https://github.com/google/osv-scanner/releases/download/v2.6.0/osv-scanner_linux_amd64
+          echo 'ca69b3d3cd08f889a49dc0a383122f71cc528b83803671df5fd874d97485b108  osv-scanner' | sha256sum --check --strict
+          chmod +x osv-scanner
+      - name: Validate dependency inventory
+        id: inventory
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          package = json.loads(Path('package.json').read_text())
+          lock = json.loads(Path('package-lock.json').read_text())
+          if lock.get('lockfileVersion') not in (2, 3) or not isinstance(lock.get('packages'), dict):
+              raise SystemExit('A packages-based npm lockfile (v2 or v3) is required.')
+          root = lock['packages'].get('')
+          if not isinstance(root, dict):
+              raise SystemExit('Lockfile root package is missing.')
+          for field in ('name', 'version'):
+              if package.get(field) != root.get(field):
+                  raise SystemExit(f'Package/lockfile mismatch: {field}. Regenerate the lockfile.')
+          for field in ('dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies'):
+              if package.get(field, {}) != root.get(field, {}):
+                  raise SystemExit(f'Package/lockfile mismatch: {field}. Regenerate the lockfile.')
+          if package.get('workspaces'):
+              raise SystemExit('Workspace dependency validation requires a dedicated policy; this baseline is single-package only.')
+          empty = len(lock['packages']) == 1 and not any(package.get(f) for f in ('dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies'))
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write(f'empty={str(empty).lower()}\n')
+          if empty:
+              with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+                  summary.write('### Dependencies\nNo third-party npm dependencies: verified matching package/lockfile inventory. OSV vulnerability lookup is not applicable.\n')
+          PY
+      - name: Scan locked npm dependencies
+        if: steps.inventory.outputs.empty != 'true'
+        shell: bash
+        run: |
+          printf '' > "$RUNNER_TEMP/osv-policy.toml"
+          "$RUNNER_TEMP/osv-scanner" scan source --lockfile=package-lock.json --config="$RUNNER_TEMP/osv-policy.toml"
+
+  static-analysis:
+    name: semgrep
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Require immutable policy revision
+        shell: bash
+        env:
+          POLICY_REF: ${{ inputs.policy-ref }}
+        run: '[[ "$POLICY_REF" =~ ^[0-9a-f]{40}$ ]]'
+      - name: Check out approved platform policy
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ inputs.policy-repository }}
+          ref: ${{ inputs.policy-ref }}
+          path: .engineering-policy
+          persist-credentials: false
+          sparse-checkout: configs/semgrep
+      - name: Install pinned Semgrep CE
+        shell: bash
+        run: |
+          python3 -m venv "$RUNNER_TEMP/semgrep-venv"
+          "$RUNNER_TEMP/semgrep-venv/bin/pip" install --disable-pip-version-check semgrep==1.180.0
+      - name: Verify rules against safe and unsafe fixtures
+        shell: bash
+        env:
+          SEMGREP_SEND_METRICS: 'off'
+        run: |
+          "$RUNNER_TEMP/semgrep-venv/bin/semgrep" --test \
+            --config .engineering-policy/configs/semgrep/javascript.yml \
+            .engineering-policy/configs/semgrep/tests
+      - name: Scan JavaScript and TypeScript source
+        shell: bash
+        run: |
+          "$RUNNER_TEMP/semgrep-venv/bin/semgrep" scan --error --strict --metrics=off --disable-version-check \
+            --config .engineering-policy/configs/semgrep/javascript.yml \
+            --exclude .engineering-policy --exclude node_modules --exclude dist .
+
+  security-policy:
+    name: security-policy
+    needs: [secrets, dependencies, static-analysis]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Require every scanner job to succeed
+        shell: bash
+        env:
+          SECRETS_RESULT: ${{ needs.secrets.result }}
+          DEPENDENCIES_RESULT: ${{ needs.dependencies.result }}
+          STATIC_RESULT: ${{ needs.static-analysis.result }}
+        run: |
+          for result in "$SECRETS_RESULT" "$DEPENDENCIES_RESULT" "$STATIC_RESULT"; do
+            if [ "$result" != success ]; then
+              echo "Security scanning is incomplete or unsuccessful: $result"
+              exit 1
+            fi
+          done
