@@ -22,7 +22,7 @@ No comment-command triggers are installed. Fork PR data follows the same API-onl
 
 ## Limits and degraded operation
 
-PR-Agent is configured for a 12,000-token context ceiling, 2,500 output tokens, low reasoning effort, no fallback model, no client retries and no ask-and-reflect pass. Upstream handler retries remain bounded; a timeout is not replayed on the same model. The complete model subprocess is limited to 240 seconds; the job is limited to 12 minutes including dependency installation. These are resource bounds, not a billing-account spending limit.
+PR-Agent is configured for a 12,000-token context ceiling, 2,500 output tokens, low reasoning effort, no fallback model, no client retries and no ask-and-reflect pass. The inference timeout is 180 seconds. Upstream handler retries remain bounded; a timeout is not replayed on the same model. The complete model subprocess is limited to 240 seconds; the job is limited to 12 minutes including dependency installation. These are resource bounds, not a billing-account spending limit. A metadata-only Google API request checks model access before inference. Failure logs contain fixed diagnostic categories and HTTP status codes, without provider response bodies or credentials.
 
 Binary files and files lacking text patches are disclosed as omitted. Oversized/unsupported input, missing credentials, quota errors, installation failures and inference failures produce a visible unavailable comment when the publisher has the prepared request. Earlier infrastructure failures remain visible in the Actions run. A stale or closed PR is never given a newly generated review.
 

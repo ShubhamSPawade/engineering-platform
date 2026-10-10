@@ -1,9 +1,47 @@
 """Run pinned PR-Agent in plain-diff mode outside any checked-out repository."""
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
 import sys
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
+
+
+def failure_categories(output):
+    """Return only fixed diagnostic labels, never provider messages or credentials."""
+    labels = {
+        "authentication": r"AuthenticationError|API_KEY_INVALID|UNAUTHENTICATED",
+        "permission": r"PermissionDeniedError|PERMISSION_DENIED",
+        "quota": r"RateLimitError|RESOURCE_EXHAUSTED|quota exceeded|429",
+        "model-not-found": r"NotFoundError|NOT_FOUND",
+        "timeout": r"TimeoutError|APITimeoutError|timed out|timeout",
+        "invalid-request": r"BadRequestError|INVALID_ARGUMENT",
+        "import": r"ImportError|ModuleNotFoundError",
+        "parse": r"ParserError|YAMLError|JSONDecodeError",
+    }
+    found = [label for label, pattern in labels.items() if re.search(pattern, output, re.I)]
+    return ", ".join(found) if found else "unclassified upstream failure"
+
+
+def verify_model_access(key, model):
+    # Metadata only: no extra inference, key in a header rather than a logged URL.
+    name = model.removeprefix("gemini/")
+    if not re.fullmatch(r"[a-z0-9.-]+", name):
+        raise ValueError("Unsupported model name.")
+    request = Request("https://generativelanguage.googleapis.com/v1beta/models/" + name,
+                      headers={"x-goog-api-key": key})
+    try:
+        with urlopen(request, timeout=30) as response:
+            response.read(65536)
+    except HTTPError as error:
+        print(f"Gemini model metadata access failed: HTTP {error.code}.", file=sys.stderr)
+        raise RuntimeError("Provider model access failed.") from None
+    except (URLError, TimeoutError):
+        print("Gemini model metadata access failed: network or timeout.", file=sys.stderr)
+        raise RuntimeError("Provider model access failed.") from None
+    print("Gemini model metadata access verified.")
 
 
 def model_environment(source, model):
@@ -23,7 +61,7 @@ def model_environment(source, model):
         "CONFIG.REPO_CONTEXT_FILES": "[]",
         "CONFIG.MAX_MODEL_TOKENS": "12000",
         "CONFIG.MAX_OUTPUT_TOKENS": "2500",
-        "CONFIG.AI_TIMEOUT": "90",
+        "CONFIG.AI_TIMEOUT": "180",
         "CONFIG.NUM_RETRIES": "0",
         "CONFIG.RETRY_SAME_MODEL_ON_TIMEOUT": "false",
         "CONFIG.REASONING_EFFORT": "low",
@@ -53,13 +91,15 @@ def main():
     diff = directory / "change.diff"
     if not diff.exists() or diff.stat().st_size > config["max_diff_bytes"]:
         raise ValueError("Review diff is missing or exceeds the configured limit.")
+    verify_model_access(os.environ["PR_AGENT_GEMINI_KEY"], config["model"])
     result = subprocess.run(
         [sys.executable, "-m", "pr_agent.cli", "--diff-file", str(diff), "--output", str(directory / "review.md"), "--json-output", str(directory / "review.json"), "review"],
         cwd=directory, env=model_environment(os.environ, config["model"]),
-        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=240, check=False,
+        capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=240, check=False,
     )
     output = directory / "review.md"
     if result.returncode != 0 or not output.exists() or not output.read_text(encoding="utf-8").strip():
+        print("PR-Agent failure category: " + failure_categories(result.stdout + result.stderr), file=sys.stderr)
         raise RuntimeError("PR-Agent did not produce a review; check provider access, free quota, and model availability.")
     print("PR-Agent generated advisory review output.")
 
