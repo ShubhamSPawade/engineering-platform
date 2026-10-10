@@ -6,6 +6,8 @@ Source: `Raw Complete plan - Automated PR review, Superthread integration, multi
 
 ## 1. Outcome and scope
 
+Latest pilot milestone: PR #19 adopted a 17-item PR checklist and periodic/manual Superthread ticket reconciliation. PR #20 verified revalidation on an unchanged head: manual run `38074655506` refreshed the required status and passed with one PR checked. All 39 local platform tests pass. The schedule is configured for four runs per hour, subject to GitHub scheduling behavior. Durable event delivery, freshness enforcement, exception policy, releases and deployments remain pending; see docs/superthread-reconciliation.md.
+
 Build a shared engineering automation platform connecting Superthread cards, GitHub PRs, deterministic checks, AI review, environment deployments, component releases, and coordinated product releases.
 
 The platform must support different repository languages and hosting targets. Preserve the agreed development flow: feature/fix branches into `dev`, release promotion through `staging`, and approved production releases through `main`. Staging verification and release-owner approval replace a separate QA stage.

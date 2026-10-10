@@ -8,6 +8,8 @@ Expanded adoption: [demo PR #16](https://github.com/ShubhamSPawade/engineering-d
 
 The user-requested concise revision was adopted through [demo PR #17](https://github.com/ShubhamSPawade/engineering-demo-api/pull/17): 23 lines, four ticket checkboxes and seven review checkboxes. GitHub API verification confirmed the short template on `dev`; all issue forms and labels remain available.
 
+The subsequent balanced revision in [demo PR #19](https://github.com/ShubhamSPawade/engineering-demo-api/pull/19) restores the important details using 17 brief checks and short evidence/recovery fields. GitHub API hashes verified the current template and scheduled/manual ticket caller against the merged files on `dev` after PR #20. This is the current template; the shorter version above is historical adoption evidence.
+
 The PR template asks for one card URL, behavior and acceptance coverage, compatibility/release impact, verification evidence, migration/deployment order and recovery. Use a conventional PR title containing the real `ST-<ID>`. The required ticket check verifies the card identifier, registered scope and non-empty Acceptance criteria/Test plan sections. Other template declarations remain author/reviewer responsibilities; version calculation and release enforcement are separate pending work.
 
 Bug and feature issue forms collect reproducible behavior or measurable outcomes. A Superthread link is optional at intake so outside reporters can submit issues. During triage, create or link a card in the registered scope before implementation. GitHub issues collect requests; Superthread tracks delivery. Disabling blank issues guides the chooser but does not make form fields a server-side policy for every API request or later edit.
