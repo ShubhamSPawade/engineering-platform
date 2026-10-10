@@ -1,0 +1,48 @@
+name: Performance investigation
+description: Report a measured latency, throughput or resource problem.
+title: "perf: "
+labels: [performance, "status: needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: "Do not include secrets or private data. A maintainer links an approved Superthread delivery card during triage."
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues and removed sensitive information.
+          required: true
+  - type: textarea
+    id: scenario
+    attributes:
+      label: Scenario and environment
+      description: Include version, workload, runtime and affected environment.
+    validations:
+      required: true
+  - type: textarea
+    id: baseline
+    attributes:
+      label: Measurements and reproduction
+      description: Provide baseline latency/throughput/resource measurements and repeatable commands. Remove private data.
+    validations:
+      required: true
+  - type: textarea
+    id: target
+    attributes:
+      label: Target and acceptance criteria
+      description: Specify an improvement target and correctness constraints.
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: Verification and regression plan
+      description: Explain benchmarking, comparison conditions and functional regression checks.
+    validations:
+      required: true
+  - type: input
+    id: ticket
+    attributes:
+      label: Superthread card URL
+      description: Optional for intake; required on the implementation PR.

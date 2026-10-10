@@ -1,0 +1,15 @@
+[
+  {"name":"bug","color":"d73a4a","description":"Something isn't working"},
+  {"name":"enhancement","color":"a2eeef","description":"New feature or request"},
+  {"name":"documentation","color":"0075ca","description":"Improvements or additions to documentation"},
+  {"name":"maintenance","color":"5319e7","description":"Refactoring, technical debt or routine maintenance"},
+  {"name":"performance","color":"fbca04","description":"Latency, throughput or resource usage improvement"},
+  {"name":"ci-cd","color":"1d76db","description":"Build, workflow, security scanning or delivery automation"},
+  {"name":"release","color":"0e8a16","description":"Release coordination, deployment or recovery planning"},
+  {"name":"status: needs-triage","color":"ededed","description":"Intake awaiting maintainer classification and a linked delivery card"},
+  {"name":"priority: critical","color":"b60205","description":"Urgent service outage or data integrity risk; assigned during triage"},
+  {"name":"priority: high","color":"d93f0b","description":"High impact work; assigned during triage"},
+  {"name":"priority: medium","color":"fbca04","description":"Normal planned work; assigned during triage"},
+  {"name":"priority: low","color":"c2e0c6","description":"Low urgency work; assigned during triage"},
+  {"name":"breaking-change","color":"b60205","description":"Incompatible behavior or contract requiring migration and release planning"}
+]

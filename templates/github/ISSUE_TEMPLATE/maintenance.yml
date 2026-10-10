@@ -1,0 +1,48 @@
+name: Maintenance and technical debt
+description: Plan refactoring, dependency updates or cleanup.
+title: "chore: "
+labels: [maintenance, "status: needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: "Do not include secrets or private data. A maintainer links an approved Superthread delivery card during triage."
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues and removed sensitive information.
+          required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Current problem and scope
+      description: Describe the maintenance need and scope boundaries.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change and compatibility
+      description: Explain the approach, affected dependencies/contracts and license implications.
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: Acceptance criteria and regression plan
+      description: List measurable outcomes and tests that preserve existing behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: recovery
+    attributes:
+      label: Migration and recovery
+      description: Describe migration and recovery, or explain why they do not apply.
+    validations:
+      required: true
+  - type: input
+    id: ticket
+    attributes:
+      label: Superthread card URL
+      description: Optional for intake; required on the implementation PR.

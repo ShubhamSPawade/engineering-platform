@@ -1,0 +1,48 @@
+name: CI and automation problem
+description: Report pipeline, integration or developer tooling problems.
+title: "ci: "
+labels: [ci-cd, "status: needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: "Do not include secrets or private data. A maintainer links an approved Superthread delivery card during triage."
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues and removed sensitive information.
+          required: true
+  - type: textarea
+    id: run
+    attributes:
+      label: Affected workflow and run
+      description: Link the workflow/run and give the commit and event type.
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected and actual behavior
+      description: Provide reproduction steps and sanitized failure evidence.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Affected scope and permissions
+      description: Identify repositories/environments, integration scope and required permissions. Never include token values.
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: Acceptance criteria and verification
+      description: Describe success, failure-path validation and recovery expectations.
+    validations:
+      required: true
+  - type: input
+    id: ticket
+    attributes:
+      label: Superthread card URL
+      description: Optional for intake; required on the implementation PR.

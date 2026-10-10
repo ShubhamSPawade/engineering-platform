@@ -1,0 +1,48 @@
+name: Release and deployment planning
+description: Coordinate components, environment promotion, migration and recovery.
+title: "release: "
+labels: [release, "status: needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: "Do not include secrets or private data. A maintainer links an approved Superthread delivery card during triage."
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues and removed sensitive information.
+          required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Release scope and candidate
+      description: List component repositories, versions or candidate commits, target environment and dependency order.
+    validations:
+      required: true
+  - type: textarea
+    id: readiness
+    attributes:
+      label: Acceptance and release readiness
+      description: List linked delivery cards, compatibility impact, blocking dependencies and required approval.
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: Verification and rollout plan
+      description: Describe staging evidence, artifact identity, deployment steps and production checks.
+    validations:
+      required: true
+  - type: textarea
+    id: recovery
+    attributes:
+      label: Rollback and partial-failure recovery
+      description: Identify recovery steps, migration constraints and handling for failed components.
+    validations:
+      required: true
+  - type: input
+    id: ticket
+    attributes:
+      label: Superthread card URL
+      description: Optional for intake; required on the implementation PR.

@@ -1,7 +1,15 @@
 name: Feature request
 description: Propose a change with an observable outcome and a way to verify it.
 title: "feat: "
+labels: [enhancement, "status: needs-triage"]
 body:
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues for this proposal.
+          required: true
   - type: markdown
     attributes:
       value: "Issues collect proposals. Approved work moves to a scoped Superthread card before implementation."

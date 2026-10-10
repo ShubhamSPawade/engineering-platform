@@ -1,0 +1,41 @@
+name: Documentation improvement
+description: Correct or improve guides, examples and setup instructions.
+title: "docs: "
+labels: [documentation, "status: needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: "Do not include secrets or private data. A maintainer links an approved Superthread delivery card during triage."
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues and removed sensitive information.
+          required: true
+  - type: textarea
+    id: location
+    attributes:
+      label: Affected documentation
+      description: Link the page, file or example.
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem and proposed correction
+      description: Explain what is missing, inaccurate or confusing.
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: Acceptance criteria and verification
+      description: Describe the desired result and how instructions or examples will be checked.
+    validations:
+      required: true
+  - type: input
+    id: ticket
+    attributes:
+      label: Superthread card URL
+      description: Optional for intake; required on the implementation PR.

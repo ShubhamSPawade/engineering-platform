@@ -8,6 +8,26 @@ The PR template asks for one card URL, behavior and acceptance coverage, compati
 
 Bug and feature issue forms collect reproducible behavior or measurable outcomes. A Superthread link is optional at intake so outside reporters can submit issues. During triage, create or link a card in the registered scope before implementation. GitHub issues collect requests; Superthread tracks delivery. Disabling blank issues guides the chooser but does not make form fields a server-side policy for every API request or later edit.
 
+The expanded set adds documentation, maintenance/technical debt, performance investigation, CI/automation and release/deployment planning forms. Required fields ask for the evidence appropriate to each kind of work, including measurements for performance and recovery for releases. No public security-vulnerability form is provided: report suspected vulnerabilities through a private channel agreed with the maintainer, not through public intake.
+
+## Labels and PR checklist
+
+The canonical label names, colors and descriptions are in `configs/github-labels.json`. Run `powershell.exe -NoProfile -File scripts/sync-github-labels.ps1 -Repository OWNER/REPO` before adopting the forms. This explicitly selected repository is the only mutation target. The script creates or updates the 13 named labels, verifies the resulting settings and preserves unrelated labels. Repeating the command is safe; it does not remove labels.
+
+| Issue form | Automatic category label |
+| --- | --- |
+| Bug report | `bug` |
+| Feature request | `enhancement` |
+| Documentation improvement | `documentation` |
+| Maintenance and technical debt | `maintenance` |
+| Performance investigation | `performance` |
+| CI and automation problem | `ci-cd` |
+| Release and deployment planning | `release` |
+
+All forms also apply `status: needs-triage`. A maintainer removes that label after classification and linking approved delivery work, or after closing an unaccepted request. Choose at most one of `priority: critical`, `priority: high`, `priority: medium`, `priority: low`; use `breaking-change` only for incompatible behavior requiring migration/release planning. Priority is a triage decision, not automatically inferred from the reporter's impact selection. PR category, priority and breaking-change labels are applied by authors or maintainers; there is no automatic PR labeler in this change. Labels do not calculate versions or bypass checks.
+
+The PR checklist now covers focused scope, regression/failure tests, contract compatibility, documentation, credentials/data, authorization/input validation, dependency/license findings, workflow permissions/pins, integration retry/idempotency, performance/observability, configuration, migration, deployment order, recovery and review resolution. Check only work actually verified. Explain inapplicable items in the provided field rather than marking them completed. These checklist entries guide review; they are not new automated merge gates.
+
 GitHub loads issue forms from `.github/ISSUE_TEMPLATE/` on the default branch, which is `dev` in the pilot. See [GitHub's issue form specification](https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/syntax-for-issue-forms). The PR template is copied to `.github/pull_request_template.md`.
 
 ## Superthread card description
