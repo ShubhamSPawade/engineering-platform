@@ -36,6 +36,8 @@ The user then requested another model. PR [#10](https://github.com/ShubhamSPawad
 
 Integration, successful inference and degraded feedback are demonstrated; finding quality evaluation remains pending. The earlier observations do not establish the precise cause of Gemini 3.8 Flash timeouts. No billing was enabled by this automation, and extra provider diagnostics remain disabled.
 
+An additional observation on [PR #12's fixture run](https://github.com/ShubhamSPawade/engineering-demo-api/actions/runs/38069839402): PR-Agent returned no security findings for a deliberately introduced, never-invoked eval function. Semgrep independently detected that pattern and blocked merging. This is one limited observation, not a measured false-negative rate; AI must remain advisory while representative evaluation continues.
+
 Before claiming live readiness, demonstrate a completed model call, a posted advisory comment, unavailable-provider behavior and successful CI/ticket checks. Record known-defect detection and false positives over representative PRs before considering enforcement; the plan's suggested sample is at least 20 PRs. The initial pilot is an integration demonstration, not an evaluated quality guarantee.
 
 For a controlled unavailable-path test, set the demo repository Actions variable `PR_AGENT_SIMULATE_UNAVAILABLE=true` and rerun its advisory workflow. This stops before inference and posts unavailable feedback without changing secrets. Restore the variable to false and rerun to recover. This tests degraded workflow behavior, not a real provider outage.

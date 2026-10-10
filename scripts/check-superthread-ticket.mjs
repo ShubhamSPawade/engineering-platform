@@ -63,7 +63,7 @@ async function run() {
     if (current.state !== 'open' || current.head.sha !== sha || current.title !== pr.title || current.body !== pr.body || current.base.ref !== pr.base.ref) {
       throw new Error('PR changed during validation; retry the latest event.');
     }
-    await status('success', `ST-${receipt.pilot_card_id} belongs to the registered board and space`);
+    await status('success', `ST-${receipt.pilot_card_id} scope and required card sections verified`);
     console.log(`Verified ST-${receipt.pilot_card_id} in the registered Superthread scope.`);
   } catch (error) {
     // Controlled messages only: never print PR content, card content or API bodies.

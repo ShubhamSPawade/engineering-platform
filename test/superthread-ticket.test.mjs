@@ -45,3 +45,19 @@ test('registered scope rejects a card from another board and authentication fail
 test('unverified scope cannot be used for a merge gate', async () => {
   await assert.rejects(checkTicket({ pr, scope: { ...scope, scope_verified_via_api: false }, token: 'fixture' }), /not been verified/);
 });
+
+test('live card content is validated after membership and rejects missing sections', async () => {
+  const contentPolicy = { mode: 'enforce', required_sections: ['Acceptance criteria', 'Test plan'], max_content_bytes: 65536 };
+  for (const content of ['', 'Acceptance criteria\nChecks pass\nTest plan\nRun tests']) {
+    const bodies = [
+      { project: { id: '9', team_id: scope.team_id, title: scope.space_name } },
+      { board: { id: '17', team_id: scope.team_id, project_id: '9', title: scope.board_name } },
+      { card: { id: '1754', team_id: scope.team_id, project_id: '9', board_id: '17', content } },
+    ];
+    let index = 0;
+    const input = { pr, scope, token: 'fixture', contentPolicy, fetchImpl: async () => ({ ok: true, json: async () => bodies[index++] }) };
+    if (!content) await assert.rejects(checkTicket(input), /non-empty, unique/);
+    else assert.equal((await checkTicket(input)).card_content.ready, true);
+    assert.equal(index, 3);
+  }
+});

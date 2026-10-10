@@ -23,3 +23,5 @@ Suggested description for [ST-1754](https://app.superthread.com/cardtree/card-17
 ```
 
 Configuration: `configs/superthread-content-policy.json`. The scope audit reads it but reports flags only. The ticket driver applies enforcement when its new platform revision is explicitly adopted. Existing callers remain on their prior policy until upgraded.
+
+Initial live audit: [run 38070690394](https://github.com/ShubhamSPawade/engineering-platform/actions/runs/38070690394) verified the registered scope and returned `acceptance_criteria=false`, `test_plan=false`, `ready=false`. Card text was not logged. The user was asked to add both sections before enforcement adoption; no card or workspace was modified by the audit.

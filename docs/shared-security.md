@@ -25,4 +25,6 @@ Actual scanners are not installed locally and downloads are blocked in this sess
 
 After clean execution, validate blocking behavior in a sandbox PR with a benign eval fixture in application source. It should fail Semgrep, security-policy, and demo-verify. Remove the fixture before merging. Do not introduce a real secret for testing.
 
+Verified on demo PR [#12](https://github.com/ShubhamSPawade/engineering-demo-api/pull/12): [run 38070476712](https://github.com/ShubhamSPawade/engineering-demo-api/actions/runs/38070476712) emitted a Reviewdog annotation at `src/reviewdog-fixture.mjs:3` for the never-invoked eval fixture. Semgrep, security-policy and demo-verify failed, and GitHub reported merging as BLOCKED. The fixture was removed; [run 38070687726](https://github.com/ShubhamSPawade/engineering-demo-api/actions/runs/38070687726) passed all CI/security checks before the PR merged. The first reporting attempt needed a read-only GitHub token; that failure did not bypass the security gate.
+
 References: [Gitleaks release assets](https://github.com/gitleaks/gitleaks/releases/expanded_assets/v8.30.1), [OSV release assets](https://github.com/google/osv-scanner/releases/expanded_assets/v2.6.0), [OSV usage](https://google.github.io/osv-scanner/usage/), [Semgrep CLI](https://docs.semgrep.dev/cli-reference).
