@@ -2,6 +2,8 @@
 
 Canonical templates live in `templates/github/` and `templates/superthread/`. They contain no account, organization, workspace or card defaults. Adopt a reviewed platform commit and copy the GitHub files to the application's `.github/` directory through a PR; review future template changes the same way.
 
+Pilot adoption: [demo PR #15](https://github.com/ShubhamSPawade/engineering-demo-api/pull/15) merged platform templates from `c19838e68321fb6a1a109326cb7d7955fe3ab6eb` into `dev` at `66437142293e313bde99b1bfdbf15bcb5d82d309`. All CI, security, ticket and advisory-review jobs passed. GitHub API reads confirmed both issue forms, chooser configuration, PR template and card-description copy on `dev`. Open the [issue chooser](https://github.com/ShubhamSPawade/engineering-demo-api/issues/new/choose) to use the forms.
+
 The PR template asks for one card URL, behavior and acceptance coverage, compatibility/release impact, verification evidence, migration/deployment order and recovery. Use a conventional PR title containing the real `ST-<ID>`. The required ticket check verifies the card identifier, registered scope and non-empty Acceptance criteria/Test plan sections. Other template declarations remain author/reviewer responsibilities; version calculation and release enforcement are separate pending work.
 
 Bug and feature issue forms collect reproducible behavior or measurable outcomes. A Superthread link is optional at intake so outside reporters can submit issues. During triage, create or link a card in the registered scope before implementation. GitHub issues collect requests; Superthread tracks delivery. Disabling blank issues guides the chooser but does not make form fields a server-side policy for every API request or later edit.
