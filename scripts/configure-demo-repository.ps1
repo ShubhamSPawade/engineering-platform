@@ -39,6 +39,15 @@ if ($existing.Count -gt 1) {
     throw "Multiple rulesets named $rulesetName exist. Resolve that ambiguity before running this script."
 }
 
+# Preserve additional adopted merge gates when the foundation script is rerun.
+$requiredChecks = @(@{ context = 'demo-verify'; integration_id = [int]$check[0].app.id })
+if ($existing.Count -eq 1) {
+    $current = Invoke-GitHubJson -Arguments @("repos/$Repository/rulesets/$($existing[0].id)")
+    foreach ($rule in @($current.rules | Where-Object type -eq 'required_status_checks')) {
+        $requiredChecks += @($rule.parameters.required_status_checks | Where-Object context -ne 'demo-verify')
+    }
+}
+
 $policy = @{
     name = $rulesetName
     target = 'branch'
@@ -68,9 +77,7 @@ $policy = @{
             parameters = @{
                 strict_required_status_checks_policy = $true
                 do_not_enforce_on_create = $false
-                required_status_checks = @(
-                    @{ context = 'demo-verify'; integration_id = [int]$check[0].app.id }
-                )
+                required_status_checks = $requiredChecks
             }
         }
     )

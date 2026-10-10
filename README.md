@@ -4,7 +4,7 @@ Reusable GitHub automation for PR checks, advisory AI review, Superthread tracea
 
 ## Current status
 
-Shared Node.js CI and security checks are published and adopted through merged demo PRs #1 and #2, with successful GitHub runs. The user confirmed that pilot PR #3 appeared on Superthread card ST-1754 in Engineering Demo, within test-demo; PR #3 has merged into dev. Authenticated ticket validation, status automation, AI review, hosted deployments, and release automation remain to be implemented.
+Shared Node.js CI and security checks are adopted through merged demo PRs #1 and #2. Superthread PR linking and merged-status display are confirmed, and live API verification confirmed card ST-1754 in Engineering Demo within test-demo. PR #4 installed trusted ticket validation; the existing ruleset now requires both demo-verify and superthread-ticket on dev, staging and main. Live missing-ticket and wrong-workspace tests on PR #5 failed and blocked merging. Card completion automation, AI review, hosted deployments, and release automation remain to be implemented.
 
 The initial pilot targets the public repository `ShubhamSPawade/engineering-platform` on GitHub Free. The account owner reports that the repository has been created and the initial planning documents uploaded. The platform will support separate installations under other GitHub accounts and organizations through configurable repository ownership, integration settings, and deployment adapters.
 
