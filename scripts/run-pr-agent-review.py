@@ -124,7 +124,8 @@ def main():
     output = directory / "review.md"
     if result.returncode != 0 or not output.exists() or not output.read_text(encoding="utf-8").strip():
         print("PR-Agent failure category: " + failure_categories(result.stdout + result.stderr), file=sys.stderr)
-        probe_inference(os.environ["PR_AGENT_GEMINI_KEY"], config["model"])
+        if os.environ.get("PR_AGENT_DIAGNOSE_PROVIDER") == "true":
+            probe_inference(os.environ["PR_AGENT_GEMINI_KEY"], config["model"])
         raise RuntimeError("PR-Agent did not produce a review; check provider access, free quota, and model availability.")
     print("PR-Agent generated advisory review output.")
 

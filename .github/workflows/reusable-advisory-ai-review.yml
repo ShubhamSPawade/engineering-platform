@@ -97,6 +97,7 @@ jobs:
       - name: Review patches using Gemini and file-only output
         env:
           PR_AGENT_GEMINI_KEY: ${{ secrets.PR_AGENT_GEMINI_KEY }}
+          PR_AGENT_DIAGNOSE_PROVIDER: ${{ vars.PR_AGENT_DIAGNOSE_PROVIDER }}
           AI_REVIEW_DIR: ${{ runner.temp }}/advisory-model
         run: .pr-agent-tool/.venv/bin/python scripts/run-pr-agent-review.py
       - name: Save advisory model output
