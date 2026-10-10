@@ -44,6 +44,30 @@ def verify_model_access(key, model):
     print("Gemini model metadata access verified.")
 
 
+def probe_inference(key, model):
+    """One tiny diagnostic request after a failed review; no PR data or retries."""
+    name = model.removeprefix("gemini/")
+    payload = {"contents": [{"parts": [{"text": "Reply with the word OK."}]}],
+               "generationConfig": {"maxOutputTokens": 256, "thinkingConfig": {"thinkingLevel": "low"}}}
+    request = Request("https://generativelanguage.googleapis.com/v1beta/models/" + name + ":generateContent",
+                      data=json.dumps(payload).encode(),
+                      headers={"x-goog-api-key": key, "Content-Type": "application/json"})
+    try:
+        with urlopen(request, timeout=30) as response:
+            result = json.loads(response.read(65536))
+        print("Direct Gemini inference diagnostic: " + ("success" if result.get("candidates") else "empty response"), file=sys.stderr)
+    except HTTPError as error:
+        # Only Google's fixed symbolic error status, never response text.
+        try:
+            status = json.loads(error.read(65536)).get("error", {}).get("status", "UNKNOWN")
+        except (ValueError, OSError):
+            status = "UNKNOWN"
+        allowed = {"INVALID_ARGUMENT", "UNAUTHENTICATED", "PERMISSION_DENIED", "RESOURCE_EXHAUSTED", "NOT_FOUND", "UNAVAILABLE", "INTERNAL"}
+        print(f"Direct Gemini inference diagnostic: HTTP {error.code}, {status if status in allowed else 'UNKNOWN'}.", file=sys.stderr)
+    except (URLError, TimeoutError, ValueError, OSError):
+        print("Direct Gemini inference diagnostic: network, timeout, or unreadable response.", file=sys.stderr)
+
+
 def model_environment(source, model):
     # Do not forward GitHub, Superthread, cloud, or runner command-file credentials.
     allowed = ("PATH", "HOME", "LANG", "LC_ALL", "TMPDIR", "VIRTUAL_ENV", "SYSTEMROOT")
@@ -100,6 +124,7 @@ def main():
     output = directory / "review.md"
     if result.returncode != 0 or not output.exists() or not output.read_text(encoding="utf-8").strip():
         print("PR-Agent failure category: " + failure_categories(result.stdout + result.stderr), file=sys.stderr)
+        probe_inference(os.environ["PR_AGENT_GEMINI_KEY"], config["model"])
         raise RuntimeError("PR-Agent did not produce a review; check provider access, free quota, and model availability.")
     print("PR-Agent generated advisory review output.")
 
