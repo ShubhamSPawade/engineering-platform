@@ -1,0 +1,146 @@
+name: Reusable Advisory AI Review
+
+on:
+  workflow_call:
+    inputs:
+      policy-repository:
+        required: true
+        type: string
+      policy-ref:
+        required: true
+        type: string
+    secrets:
+      PR_AGENT_GEMINI_KEY:
+        required: false
+
+permissions: {}
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Require trusted event and pinned platform
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          POLICY_REF: ${{ inputs.policy-ref }}
+        run: |
+          test "$EVENT_NAME" = pull_request_target
+          [[ "$POLICY_REF" =~ ^[0-9a-f]{40}$ ]]
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ inputs.policy-repository }}
+          ref: ${{ inputs.policy-ref }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+      - name: Fetch bounded PR patches as data
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          AI_REVIEW_DIR: ${{ runner.temp }}/advisory-input
+        run: node scripts/advisory-ai-review.mjs prepare
+      - name: Save review input without credentials
+        if: ${{ always() && !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: advisory-input
+          path: ${{ runner.temp }}/advisory-input/
+          retention-days: 1
+          overwrite: true
+          if-no-files-found: error
+
+  model:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    permissions:
+      contents: read
+    steps:
+      - name: Verify model access configuration
+        env:
+          MODEL_KEY: ${{ secrets.PR_AGENT_GEMINI_KEY }}
+          SIMULATE_UNAVAILABLE: ${{ vars.PR_AGENT_SIMULATE_UNAVAILABLE }}
+        run: |
+          if [ -z "$MODEL_KEY" ] || [ "$SIMULATE_UNAVAILABLE" = true ]; then
+            echo 'Advisory model access unavailable: missing key or operator simulation.'
+            exit 1
+          fi
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ inputs.policy-repository }}
+          ref: ${{ inputs.policy-ref }}
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: The-PR-Agent/pr-agent
+          ref: 8e5a9295973b24af4b70cafd0b660a230811ef9e # v0.47.0
+          path: .pr-agent-tool
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Install pinned runner and upstream locked dependencies
+        working-directory: .pr-agent-tool
+        env:
+          UV_PYTHON_DOWNLOADS: never
+        run: |
+          python -m pip install uv==0.12.10
+          uv sync --frozen --no-dev --python 3.12
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: advisory-input
+          path: ${{ runner.temp }}/advisory-model
+      - name: Review patches using Gemini and file-only output
+        env:
+          PR_AGENT_GEMINI_KEY: ${{ secrets.PR_AGENT_GEMINI_KEY }}
+          AI_REVIEW_DIR: ${{ runner.temp }}/advisory-model
+        run: .pr-agent-tool/.venv/bin/python scripts/run-pr-agent-review.py
+      - name: Save advisory model output
+        if: ${{ always() && !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: advisory-output
+          path: |
+            ${{ runner.temp }}/advisory-model/review.md
+            ${{ runner.temp }}/advisory-model/review.json
+          retention-days: 1
+          overwrite: true
+          if-no-files-found: ignore
+
+  publish:
+    needs: [prepare, model]
+    if: ${{ always() && !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ inputs.policy-repository }}
+          ref: ${{ inputs.policy-ref }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: advisory-input
+          path: ${{ runner.temp }}/advisory-publish
+      - name: Download output when model succeeded
+        if: ${{ needs.model.result == 'success' }}
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: advisory-output
+          path: ${{ runner.temp }}/advisory-publish
+      - name: Publish advisory findings or visible unavailable result
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          AI_MODEL_RESULT: ${{ needs.model.result }}
+          AI_REVIEW_DIR: ${{ runner.temp }}/advisory-publish
+        run: node scripts/advisory-ai-review.mjs publish

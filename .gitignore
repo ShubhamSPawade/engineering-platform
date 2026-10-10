@@ -1,2 +1,4 @@
 # Pilot application is published as an independent repository.
 /demo-api/
+__pycache__/
+*.pyc

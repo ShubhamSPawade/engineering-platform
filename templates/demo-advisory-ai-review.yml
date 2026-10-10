@@ -1,0 +1,23 @@
+name: Advisory AI Review
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, ready_for_review]
+    branches: [dev, staging, main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: advisory-ai-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    uses: PLATFORM_REPOSITORY/.github/workflows/reusable-advisory-ai-review.yml@PLATFORM_SHA
+    with:
+      policy-repository: PLATFORM_REPOSITORY
+      policy-ref: PLATFORM_SHA
+    secrets:
+      PR_AGENT_GEMINI_KEY: ${{ secrets.PR_AGENT_GEMINI_KEY }}

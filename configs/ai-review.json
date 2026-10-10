@@ -1,0 +1,15 @@
+{
+  "repository": "ShubhamSPawade/engineering-demo-api",
+  "provider": "gemini",
+  "model": "gemini/gemini-3.8-flash",
+  "advisory_only": true,
+  "max_files": 40,
+  "max_diff_bytes": 50000,
+  "max_output_chars": 40000,
+  "pr_agent_repository": "The-PR-Agent/pr-agent",
+  "pr_agent_ref": "8e5a9295973b24af4b70cafd0b660a230811ef9e",
+  "pr_agent_release": "v0.47.0",
+  "provider_approved_by_user": true,
+  "provider_approval_date": "2026-10-10",
+  "billing_requirement": "Use a Gemini project without billing enabled; the workflow cannot inspect Google billing settings."
+}
