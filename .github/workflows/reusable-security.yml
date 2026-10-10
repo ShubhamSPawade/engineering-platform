@@ -121,6 +121,13 @@ jobs:
         run: |
           python3 -m venv "$RUNNER_TEMP/semgrep-venv"
           "$RUNNER_TEMP/semgrep-venv/bin/pip" install --disable-pip-version-check semgrep==1.180.0
+      - name: Install checksum-pinned Reviewdog
+        shell: bash
+        run: |
+          curl --fail --location --retry 3 --max-time 120 -o "$RUNNER_TEMP/reviewdog.tar.gz" https://github.com/reviewdog/reviewdog/releases/download/v0.21.2/reviewdog_0.21.2_Linux_x86_64.tar.gz
+          echo "30413aa3c7443e9c3c157fe5766cad40e3bb39a32e210ee69b710a8d5c4b8e51  $RUNNER_TEMP/reviewdog.tar.gz" | sha256sum --check --strict
+          mkdir -p "$RUNNER_TEMP/reviewdog-tool"
+          tar -xzf "$RUNNER_TEMP/reviewdog.tar.gz" -C "$RUNNER_TEMP/reviewdog-tool" reviewdog
       - name: Verify rules against safe and unsafe fixtures
         shell: bash
         env:
@@ -129,11 +136,35 @@ jobs:
           "$RUNNER_TEMP/semgrep-venv/bin/semgrep" --test \
             .engineering-policy/configs/semgrep
       - name: Scan JavaScript and TypeScript source
+        id: semgrep-scan
         shell: bash
         run: |
+          set +e
           "$RUNNER_TEMP/semgrep-venv/bin/semgrep" scan --error --strict --metrics=off --disable-version-check \
             --config .engineering-policy/configs/semgrep/javascript.yml \
+            --sarif --output "$RUNNER_TEMP/semgrep.sarif" \
             --exclude .engineering-policy --exclude node_modules --exclude dist .
+          scan_status=$?
+          echo "exit-code=$scan_status" >> "$GITHUB_OUTPUT"
+          exit 0
+      - name: Annotate Semgrep findings with Reviewdog
+        if: ${{ always() && steps.semgrep-scan.outputs.exit-code != '' }}
+        continue-on-error: true
+        shell: bash
+        run: |
+          test -s "$RUNNER_TEMP/semgrep.sarif"
+          "$RUNNER_TEMP/reviewdog-tool/reviewdog" -f=sarif -name=Semgrep \
+            -reporter=github-annotations -filter-mode=nofilter -fail-level=none < "$RUNNER_TEMP/semgrep.sarif"
+      - name: Enforce original Semgrep scan result
+        if: ${{ always() }}
+        shell: bash
+        env:
+          SCAN_EXIT_CODE: ${{ steps.semgrep-scan.outputs.exit-code }}
+        run: |
+          if [ "$SCAN_EXIT_CODE" != 0 ]; then
+            echo "Semgrep scan failed or did not complete (exit code: ${SCAN_EXIT_CODE:-missing})."
+            exit 1
+          fi
 
   security-policy:
     name: security-policy
