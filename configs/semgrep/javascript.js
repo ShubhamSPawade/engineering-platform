@@ -1,4 +1,5 @@
-// Fixtures are scanned as text; they are never executed.
+// Fixtures sit beside javascript.yml for Semgrep's directory-based test discovery.
+// They are scanned as text and are never executed.
 // ruleid: no-eval
 eval(input);
 // ok: no-eval
