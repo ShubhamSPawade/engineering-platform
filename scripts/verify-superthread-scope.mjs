@@ -11,7 +11,7 @@ function identifier(value, label) {
 }
 
 // Only GET requests to three explicitly registered resources are supported.
-export async function verifyScope({ scope, teamId, token, cardId = scope.pilot_card_route_id, fetchImpl = fetch }) {
+export async function verifyScope({ scope, teamId, token, cardId = scope.pilot_card_route_id, fetchImpl = fetch, validateCard }) {
   identifier(teamId, 'SUPERTHREAD_TEAM_ID');
   requireValue(typeof token === 'string' && token.trim().length > 0 && !/[\r\n]/.test(token), 'SUPERTHREAD_API_TOKEN is missing or invalid.');
   requireValue(scope.policy?.allow_other_spaces === false && scope.policy?.allow_workspace_configuration_changes === false, 'Scope must forbid other spaces and workspace configuration changes.');
@@ -50,13 +50,17 @@ export async function verifyScope({ scope, teamId, token, cardId = scope.pilot_c
   requireValue(card.board_id === boardId && card.project_id === spaceId, 'Pilot card is outside the permitted board or space.');
   requireValue(!card.archived_board && !card.archived_list, 'Pilot card belongs to an archived board or list.');
   // Return only the identifiers needed for registration, never full API responses.
-  return { team_id: teamId, api_space_id: spaceId, board_id: boardId, pilot_card_id: cardId, scope_verified_via_api: true };
+  return { team_id: teamId, api_space_id: spaceId, board_id: boardId, pilot_card_id: cardId, scope_verified_via_api: true,
+    ...(validateCard ? { card_content: validateCard(card) } : {}) };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   try {
     const scope = JSON.parse(await readFile(new URL('../configs/superthread-scope.json', import.meta.url), 'utf8'));
-    const receipt = await verifyScope({ scope, teamId: process.env.SUPERTHREAD_TEAM_ID, token: process.env.SUPERTHREAD_API_TOKEN });
+    const policy = JSON.parse(await readFile(new URL('../configs/superthread-content-policy.json', import.meta.url), 'utf8'));
+    const { inspectCardContent } = await import('./superthread-card-content.mjs');
+    const receipt = await verifyScope({ scope, teamId: process.env.SUPERTHREAD_TEAM_ID, token: process.env.SUPERTHREAD_API_TOKEN,
+      validateCard: card => inspectCardContent(card.content, policy) });
     console.log(JSON.stringify(receipt, null, 2));
   } catch (error) {
     console.error(error.message);

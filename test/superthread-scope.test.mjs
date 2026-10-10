@@ -37,6 +37,11 @@ test('rejects a card moved to a different board', async () => {
   const { fetchImpl } = harness(b => { b[2].card.board_id = '18'; });
   await assert.rejects(verifyScope({ ...input, fetchImpl }), /outside the permitted board/);
 });
+
+test('checks scope before invoking a card-content validator', async () => {
+  const { fetchImpl } = harness(b => { b[2].card.board_id = '18'; });
+  await assert.rejects(verifyScope({ ...input, fetchImpl, validateCard: () => assert.fail('Out-of-scope card content must not be inspected') }), /outside the permitted board/);
+});
 test('rejects a different workspace and archived resources', async () => {
   for (const change of [b => { b[0].project.team_id = 'other'; }, b => { b[2].card.archived = { time_archived: 1 }; }]) {
     const { fetchImpl } = harness(change);

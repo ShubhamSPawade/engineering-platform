@@ -1,0 +1,5 @@
+{
+  "mode": "enforce",
+  "required_sections": ["Acceptance criteria", "Test plan"],
+  "max_content_bytes": 65536
+}

@@ -18,7 +18,7 @@ jobs:
         with:
           node-version: '24'
       - name: Test scope boundaries without credentials
-        run: node --test test/superthread-scope.test.mjs
+        run: node --test test/superthread-scope.test.mjs test/superthread-card-content.test.mjs
       - name: Verify only the registered pilot resources
         env:
           SUPERTHREAD_TEAM_ID: ${{ vars.SUPERTHREAD_TEAM_ID }}

@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import { verifyScope } from './verify-superthread-scope.mjs';
+import { enforceCardContent } from './superthread-card-content.mjs';
 
 export function ticketFromPr(pr, scope) {
   if (pr.base?.repo?.full_name !== scope.github_repository) throw new Error('PR repository is not registered.');
@@ -16,16 +17,18 @@ export function ticketFromPr(pr, scope) {
   return references[0];
 }
 
-export async function checkTicket({ pr, scope, token, fetchImpl }) {
+export async function checkTicket({ pr, scope, token, fetchImpl, contentPolicy }) {
   if (!scope.scope_verified_via_api || !scope.team_id || !scope.api_space_id || !scope.board_id) {
     throw new Error('Superthread scope has not been verified.');
   }
   const cardId = ticketFromPr(pr, scope);
-  return verifyScope({ scope, teamId: scope.team_id, token, cardId, fetchImpl });
+  return verifyScope({ scope, teamId: scope.team_id, token, cardId, fetchImpl,
+    ...(contentPolicy ? { validateCard: card => enforceCardContent(card.content, contentPolicy) } : {}) });
 }
 
 async function run() {
   const scope = JSON.parse(await readFile(new URL('../configs/superthread-scope.json', import.meta.url), 'utf8'));
+  const contentPolicy = JSON.parse(await readFile(new URL('../configs/superthread-content-policy.json', import.meta.url), 'utf8'));
   const event = JSON.parse(await readFile(process.env.GITHUB_EVENT_PATH, 'utf8'));
   const repository = process.env.GITHUB_REPOSITORY;
   if (repository !== scope.github_repository || process.env.GITHUB_EVENT_NAME !== 'pull_request_target') {
@@ -55,7 +58,7 @@ async function run() {
   try {
     const pr = await github(`pulls/${number}`);
     if (pr.state !== 'open' || pr.head.sha !== sha) throw new Error('PR event is stale; a newer event must validate the current head.');
-    const receipt = await checkTicket({ pr, scope, token: process.env.SUPERTHREAD_API_TOKEN });
+    const receipt = await checkTicket({ pr, scope, token: process.env.SUPERTHREAD_API_TOKEN, contentPolicy });
     const current = await github(`pulls/${number}`);
     if (current.state !== 'open' || current.head.sha !== sha || current.title !== pr.title || current.body !== pr.body || current.base.ref !== pr.base.ref) {
       throw new Error('PR changed during validation; retry the latest event.');
