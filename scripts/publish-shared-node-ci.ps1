@@ -66,7 +66,7 @@ $platformFiles = @(
 if ($Stage -eq 'Security') {
     $platformFiles += @(
         '.github/workflows/reusable-security.yml', 'templates/demo-security-ci.yml',
-        'configs/semgrep/javascript.yml', 'configs/semgrep/javascript.js', 'configs/semgrep/tests/javascript.js',
+        'configs/semgrep/javascript.yml', 'configs/semgrep/javascript.js',
         'scripts/publish-shared-security.ps1', 'docs/shared-security.md'
     )
 }
