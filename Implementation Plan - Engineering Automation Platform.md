@@ -1,6 +1,6 @@
 # Implementation Plan: Engineering Automation Platform
 
-Status: Pilot in progress. Shared Node CI/security, branch merge gates, native Superthread PR linking, and basic authenticated ticket scope validation are implemented. Advisory PR-Agent review with Gemini 3.1 Flash-Lite has passed live inference and comment publishing; degraded feedback is also verified. Finding quality evaluation, releases, deployments, and durable synchronization remain pending. See docs/advisory-ai-review.md for evidence.
+Status: Pilot in progress. Shared Node CI/security with Reviewdog annotations, branch merge gates, native Superthread PR linking, authenticated ticket scope validation and required card Acceptance criteria/Test plan sections are implemented. Advisory PR-Agent review with Gemini 3.1 Flash-Lite has passed live inference and comment publishing; degraded feedback is also verified. Finding quality evaluation, dependency/cancellation policy, releases, deployments, and durable synchronization remain pending. See docs/advisory-ai-review.md and docs/superthread-content-policy.md for evidence.
 
 Source: `Raw Complete plan - Automated PR review, Superthread integration, multi-repo releases, and deployment.md`, read in full, including its failure cases and final checklist.
 

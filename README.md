@@ -38,4 +38,4 @@ See [PR-Agent and Gemini setup](docs/advisory-ai-review.md) for the pinned open-
 
 Reviewdog source-line annotations are adopted through demo PR #12. A temporary eval fixture produced an annotation and blocked merging; it was removed before clean CI passed and the PR merged. See [shared security evidence](docs/shared-security.md).
 
-The approved [card-content policy](docs/superthread-content-policy.md) is implemented and tested, but adoption awaits ST-1754's non-empty Acceptance criteria and Test plan sections. The read-only pilot audit found both missing. Existing required ticket checks remain on their previously verified policy until the new policy is adopted.
+The approved [card-content policy](docs/superthread-content-policy.md) is adopted through demo PR #13 after the user saved non-empty Acceptance criteria and Test plan sections on ST-1754. A read-only audit confirmed readiness; the subsequent live PR #14 passed the required scope-and-content ticket check. This verifies structural readiness at check time, not acceptance-criteria fulfillment. Dependency/cancellation policy and card-change reconciliation remain pending.
