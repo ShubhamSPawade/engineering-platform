@@ -21,7 +21,7 @@ permissions:
 jobs:
   ticket-policy:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - name: Require trusted trigger and immutable policy
         env:
@@ -38,7 +38,9 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '24'
-      - name: Validate current PR metadata and live card membership
+      - name: Test ticket policy boundaries without credentials
+        run: node --test test/superthread-*.test.mjs
+      - name: Validate current PR metadata and live card readiness
         env:
           GITHUB_TOKEN: ${{ github.token }}
           SUPERTHREAD_API_TOKEN: ${{ secrets.SUPERTHREAD_API_TOKEN }}

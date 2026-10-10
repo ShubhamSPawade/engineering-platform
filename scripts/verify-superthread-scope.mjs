@@ -10,7 +10,7 @@ function identifier(value, label) {
   return value;
 }
 
-// Only GET requests to three explicitly registered resources are supported.
+// Only GET requests in the registered scope are supported.
 export async function verifyScope({ scope, teamId, token, cardId = scope.pilot_card_route_id, fetchImpl = fetch, validateCard }) {
   identifier(teamId, 'SUPERTHREAD_TEAM_ID');
   requireValue(typeof token === 'string' && token.trim().length > 0 && !/[\r\n]/.test(token), 'SUPERTHREAD_API_TOKEN is missing or invalid.');
@@ -47,11 +47,20 @@ export async function verifyScope({ scope, teamId, token, cardId = scope.pilot_c
   requireValue(board.project_id === spaceId, 'Registered board is outside the permitted space.');
   requireValue(board.title === scope.board_name, 'Registered board name does not match.');
   const card = await get('cards', cardId, 'card');
-  requireValue(card.board_id === boardId && card.project_id === spaceId, 'Pilot card is outside the permitted board or space.');
-  requireValue(!card.archived_board && !card.archived_list, 'Pilot card belongs to an archived board or list.');
+  function requireCardScope(value) {
+    requireValue(value.board_id === boardId && value.project_id === spaceId, 'Pilot card is outside the permitted board or space.');
+    requireValue(!value.archived_board && !value.archived_list, 'Pilot card belongs to an archived board or list.');
+  }
+  requireCardScope(card);
+  async function readCard(id) {
+    requireValue(typeof id === 'string' && /^[1-9][0-9]*$/.test(id), 'Dependency card ID is invalid.');
+    const value = await get('cards', id, 'card');
+    requireCardScope(value);
+    return value;
+  }
   // Return only the identifiers needed for registration, never full API responses.
   return { team_id: teamId, api_space_id: spaceId, board_id: boardId, pilot_card_id: cardId, scope_verified_via_api: true,
-    ...(validateCard ? { card_content: validateCard(card) } : {}) };
+    ...(validateCard ? { card_content: await validateCard(card, { readCard }) } : {}) };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
@@ -59,8 +68,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     const scope = JSON.parse(await readFile(new URL('../configs/superthread-scope.json', import.meta.url), 'utf8'));
     const policy = JSON.parse(await readFile(new URL('../configs/superthread-content-policy.json', import.meta.url), 'utf8'));
     const { inspectCardContent } = await import('./superthread-card-content.mjs');
+    const { inspectCardLifecycle } = await import('./superthread-card-lifecycle.mjs');
     const receipt = await verifyScope({ scope, teamId: process.env.SUPERTHREAD_TEAM_ID, token: process.env.SUPERTHREAD_API_TOKEN,
-      validateCard: card => inspectCardContent(card.content, policy) });
+      validateCard: card => ({ ...inspectCardContent(card.content, policy), lifecycle: inspectCardLifecycle(card) }) });
     console.log(JSON.stringify(receipt, null, 2));
   } catch (error) {
     console.error(error.message);

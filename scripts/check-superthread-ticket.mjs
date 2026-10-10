@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import { verifyScope } from './verify-superthread-scope.mjs';
 import { enforceCardContent } from './superthread-card-content.mjs';
+import { enforceCardLifecycle } from './superthread-card-lifecycle.mjs';
 
 export function ticketFromPr(pr, scope) {
   if (pr.base?.repo?.full_name !== scope.github_repository) throw new Error('PR repository is not registered.');
@@ -17,18 +18,22 @@ export function ticketFromPr(pr, scope) {
   return references[0];
 }
 
-export async function checkTicket({ pr, scope, token, fetchImpl, contentPolicy }) {
+export async function checkTicket({ pr, scope, token, fetchImpl, contentPolicy, lifecyclePolicy }) {
   if (!scope.scope_verified_via_api || !scope.team_id || !scope.api_space_id || !scope.board_id) {
     throw new Error('Superthread scope has not been verified.');
   }
   const cardId = ticketFromPr(pr, scope);
   return verifyScope({ scope, teamId: scope.team_id, token, cardId, fetchImpl,
-    ...(contentPolicy ? { validateCard: card => enforceCardContent(card.content, contentPolicy) } : {}) });
+    ...(contentPolicy || lifecyclePolicy ? { validateCard: async (card, { readCard }) => ({
+      ...(contentPolicy ? enforceCardContent(card.content, contentPolicy) : {}),
+      ...(lifecyclePolicy ? { lifecycle: await enforceCardLifecycle({ card, scope, readCard, policy: lifecyclePolicy }) } : {}),
+    }) } : {}) });
 }
 
 async function run() {
   const scope = JSON.parse(await readFile(new URL('../configs/superthread-scope.json', import.meta.url), 'utf8'));
   const contentPolicy = JSON.parse(await readFile(new URL('../configs/superthread-content-policy.json', import.meta.url), 'utf8'));
+  const lifecyclePolicy = JSON.parse(await readFile(new URL('../configs/superthread-lifecycle-policy.json', import.meta.url), 'utf8'));
   const event = JSON.parse(await readFile(process.env.GITHUB_EVENT_PATH, 'utf8'));
   const repository = process.env.GITHUB_REPOSITORY;
   if (repository !== scope.github_repository || process.env.GITHUB_EVENT_NAME !== 'pull_request_target') {
@@ -58,12 +63,12 @@ async function run() {
   try {
     const pr = await github(`pulls/${number}`);
     if (pr.state !== 'open' || pr.head.sha !== sha) throw new Error('PR event is stale; a newer event must validate the current head.');
-    const receipt = await checkTicket({ pr, scope, token: process.env.SUPERTHREAD_API_TOKEN, contentPolicy });
+    const receipt = await checkTicket({ pr, scope, token: process.env.SUPERTHREAD_API_TOKEN, contentPolicy, lifecyclePolicy });
     const current = await github(`pulls/${number}`);
     if (current.state !== 'open' || current.head.sha !== sha || current.title !== pr.title || current.body !== pr.body || current.base.ref !== pr.base.ref) {
       throw new Error('PR changed during validation; retry the latest event.');
     }
-    await status('success', `ST-${receipt.pilot_card_id} scope and required card sections verified`);
+    await status('success', `ST-${receipt.pilot_card_id} scope, content, cancellation and dependencies verified`);
     console.log(`Verified ST-${receipt.pilot_card_id} in the registered Superthread scope.`);
   } catch (error) {
     // Controlled messages only: never print PR content, card content or API bodies.
